@@ -1,2 +1,0 @@
-AEKARA
-GERA
