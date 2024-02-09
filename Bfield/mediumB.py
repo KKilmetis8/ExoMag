@@ -11,8 +11,8 @@ from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
 import src.prelude as c
-from src.reynolds import rey_mag, profile_sorter
-from src.B_reynolds import ReyB_doer
+from src.Bfield.reynolds import rey_mag, profile_sorter
+from src.Bfield.B_reynolds import ReyB_doer
 #%%
 
 def convective_flux(cp, T, rho, vel_conv, P, delta):
@@ -55,22 +55,23 @@ def medB_doer(names):
             R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
             Rdyn_end = R_dynamo_active[0] # it's the wrong way round
             Rdyn_start = R_dynamo_active[-1]
+            start = np.argmin(np.abs(r - Rdyn_start))
+            end = np.argmin(np.abs(r - Rdyn_end))
             
             # Neccecary quantities for B | NOTE: Assumes F=1
             density = np.power(10, p.logRho)
-            mean_density = np.mean(density)
+            mean_density = np.mean(density[end:start]) # in the dynamo region
             mean_density *= 1000 # g/cm^3 to kg/m^3
             T = np.power(10, p.logT)
             P = np.power(10, p.logP)
             delta = p.dlnRho_dlnT_const_Pgas
             
             idx = np.argmin(np.abs(r - Rdyn_start))
-            print(idx)
             q = convective_flux(p.cp[idx], T[idx], density[idx], 
                                 p.conv_vel[idx], P[idx], delta[idx])
             q0 = q * Rdyn_start**2 / Rdyn_end**2
             q0 *= 1e-3 # mW/m^2 to W/m^2
-            print(q0, q)
+            #print(q0, q)
 
             # Calc B | B^2 = 2mu_0 c <rho>^1/3 q(r)^2/3  | mu_0 cgs is 1
             B_dyn_squared_SI = 2  * c.mu_0_SI * c.porp_c * mean_density**(1/3)\
@@ -113,7 +114,7 @@ def plotter(names, names2, cols, labels, bigfirst = True):
             axs[0].plot(planet.age, planet.Bdyn, color = color, lw=5)
             axs[1].plot(planet.age, planet.Bdip, color = color, lw=5)
                 
-        axs[0].plot(planet.age, planet.Bdyn, color = color)
+        axs[0].scatter(planet.age, planet.Bdyn, color = color, s =10)
         axs[1].plot(planet.age, planet.Bdip, color = color)
         
         # Legend
@@ -160,28 +161,29 @@ def plotter(names, names2, cols, labels, bigfirst = True):
                 fontsize =  14, ncols = 3, alignment = 'center', # Lawful Neutral
                 bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
 #%%    
-# name = 'jup13'
-# name2 = 'jup14'
-# name3 = 'jup15'
-# name4 = 'jup16'
-# name5 = 'jup17'
-# name6 = 'jup11'
-
-# labels = ['0.025 AU', '0.035 AU', '0.045 AU', '0.05 AU', '0.1 AU', '0.5 AU']
-# plotter([name, name2, name3, name4, name5, name6], 2, labels, False)
-
-# name = 'jupenvtest1'
-# name2 = 'jupenvtest2'
-# name3 = 'jup17'
-# name4 = 'jupenvtest3'
-# name5 = 'jupenvtest4'
-# name6 = 'jupenvtest5'
-# name7 = 'jupenvtest6'
-# name8 = 'jupenvtest7'
-# labels = ['30', '40', '50', '60', '70', '80', '90', '95']
-# plotter([name, name2, name3, name4, name5, name6, name7, name8], 3, labels, False)
-
-name = 'jup17vol3'
-name2 = 'jup17'
-labels = ['F=1', 'Scaling']
-plotter([name], [name2], 1, labels, False)
+if __name__ == '__main__':
+    # name = 'jup13'
+    # name2 = 'jup14'
+    # name3 = 'jup15'
+    # name4 = 'jup16'
+    # name5 = 'jup17'
+    # name6 = 'jup11'
+    
+    # labels = ['0.025 AU', '0.035 AU', '0.045 AU', '0.05 AU', '0.1 AU', '0.5 AU']
+    # plotter([name, name2, name3, name4, name5, name6], 2, labels, False)
+    
+    # name = 'jupenvtest1'
+    # name2 = 'jupenvtest2'
+    # name3 = 'jup17'
+    # name4 = 'jupenvtest3'
+    # name5 = 'jupenvtest4'
+    # name6 = 'jupenvtest5'
+    # name7 = 'jupenvtest6'
+    # name8 = 'jupenvtest7'
+    # labels = ['30', '40', '50', '60', '70', '80', '90', '95']
+    # plotter([name, name2, name3, name4, name5, name6, name7, name8], 3, labels, False)
+    
+    name = 'jup17profiletest'
+    name2 = 'jup17profiletest'
+    labels = ['F=1', 'Scaling']
+    plotter([name], [name2], 1, labels, False)

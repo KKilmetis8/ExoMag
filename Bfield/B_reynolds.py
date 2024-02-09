@@ -11,7 +11,7 @@ from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
 import src.prelude as c
-from src.reynolds import rey_mag, profile_sorter
+from src.Bfield.reynolds import rey_mag, profile_sorter
 #%%
 
 def dipole(M, R, L, Rdyn):
@@ -69,13 +69,13 @@ def ReyB_doer(names):
             # Get Rdyn
             R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
             Rdyn = R_dynamo_active[0] # it's the wrong way round
+            idx = np.argmin(np.abs( r - Rdyn))
             
-            # Find closest age in history file
-            # idx = np.argmin(np.abs(h_age - age))
+            # M L R for dynamo surface
             M = p.star_mass
-            R = r[0]
+            R = Rdyn
             # print(R * c.Rsol / c.Rjup)
-            L = p.photosphere_L
+            L = p.luminosity[idx]
             
             # Calc B
             B_dyn, B_dip = dipole(M, R, L, Rdyn)
