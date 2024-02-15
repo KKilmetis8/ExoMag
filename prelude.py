@@ -51,6 +51,14 @@ c96 = '#0095ac'
 c97 = '#1f64ad'
 c98 = '#4040a0'
 c99 = '#903498'
+
+# 6 Neptunes
+n1 = '#0d1530'
+n2 = '#081a44'
+n3 = '#2a4891'
+n4 = '#4e5291'
+n5 = '#8996cb'
+n6 = '#c3c5ea'
 # Plotting
 import matplotlib.pyplot as plt
 plt.rcParams['text.usetex'] = True

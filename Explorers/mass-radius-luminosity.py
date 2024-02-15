@@ -11,7 +11,7 @@ from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
 import src.prelude as c
-from src.reynolds import profile_sorter, rey_mag
+from src.Bfield.reynolds import profile_sorter, rey_mag
 
 class apothicarios:
     def __init__(self, name):
@@ -22,12 +22,12 @@ class apothicarios:
         self.lum = []
         self.lum2 = [] # comparing MESA logT with photosphereL
       
-    def __call__(self, age_h, mass_h, radius_h, lum_h, lum2_h):
+    def __call__(self, age_h, mass_h, radius_h, lum_h):#), lum2_h):
         self.age.append(age_h)
         self.mass.append(mass_h)
         self.radius.append(radius_h)
         self.lum.append(lum_h)
-        self.lum2.append(lum2_h)
+        #self.lum2.append(lum2_h)
       
 def doer(names):
     # Count and generate profile lists
@@ -61,25 +61,25 @@ def doer(names):
             # print(R * c.Rsol / c.Rjup)
             L = p.photosphere_L
             #
-            r_cgs = r[0] * c.Rsol
+            # r_cgs = r[0] * c.Rsol
             
-            # Get Rdyn
-            _, reynolds_mag_number, _= rey_mag(p)
-            R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
-            Rdyn = R_dynamo_active[0] * c.Rsol # [cgs]
-            idx = np.argmin(np.abs(r - Rdyn)) 
+            # # Get Rdyn
+            # _, reynolds_mag_number, _= rey_mag(p)
+            # R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
+            # Rdyn = R_dynamo_active[0] * c.Rsol # [cgs]
+            # idx = np.argmin(np.abs(r - Rdyn)) 
             
-            print(np.power(10, p.logT[idx]), Rdyn)
-            L2 = 4 * np.pi * Rdyn**2 * c.sigma* np.power(10, p.logT[idx])**4
-            L2 /= c.Lsol
+            # print(np.power(10, p.logT[idx]), Rdyn)
+            # L2 = 4 * np.pi * Rdyn**2 * c.sigma* np.power(10, p.logT[idx])**4
+            # L2 /= c.Lsol
             # Save
-            hold(age, M, R, L, L2)
-        print('--')
+            hold(age, M, R, L)#, L2)
+        #print('--')
         apothikh.append(hold)
     return apothikh
 
 
-def plotter(names, cols, labels, bigfirst = True):
+def plotter(names, cols, labels, title, bigfirst = True):
     
     # Specify Palettes
     if cols == 1:
@@ -104,11 +104,11 @@ def plotter(names, cols, labels, bigfirst = True):
             axs[0].plot(planet.age, planet.mass, color = color, lw=5)
             axs[1].plot(planet.age, planet.radius, color = color, lw=5)
             axs[2].plot(planet.age, planet.lum, color = color, lw=5)
-            axs[2].plot(planet.age, planet.lum2, color = colors2[i], linestyle = 'dashed', lw = 5)
+            #axs[2].plot(planet.age, planet.lum2, color = colors2[i], linestyle = 'dashed', lw = 5)
                 
         axs[0].plot(planet.age, planet.mass, color = color)
         axs[1].plot(planet.age, planet.radius, color = color)
-        axs[2].plot(planet.age, planet.lum2, color = color)
+        axs[2].plot(planet.age, planet.lum, color = color)
         #axs[2].plot(planet.age, planet.lum2, color = colors2[i], linestyle = 'dashed')
 
         # Legend
@@ -124,11 +124,11 @@ def plotter(names, cols, labels, bigfirst = True):
     axs[1].grid()
     axs[2].grid()
 
-    axs[0].set_xlim(200, 10_000)
-    axs[1].set_ylim(7.2,14)
-    axs[2].set_ylim(0,1.5e-5)
+    axs[0].set_xlim(100, 10_000)
+    # axs[1].set_ylim(7.2,14)
+    # axs[2].set_ylim(0,1.5e-5)
 
-    fig.suptitle('You\'re hot and you\'re cold', 
+    fig.suptitle(title, 
                   fontsize = 18, y = 0.98)
     fig.text(0.47, -0.02, r' Age [Myr]', 
               fontsize = 15, transform = fig.transFigure)
@@ -147,6 +147,10 @@ def plotter(names, cols, labels, bigfirst = True):
     if len(names) == 8:
         fig.legend(custom_lines, labels,
                     fontsize =  10, ncols = 4, alignment = 'center', # Lawful Neutral
+                    bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
+    elif len(planets) == 6:
+        fig.legend(custom_lines, labels,
+                    fontsize =  10, ncols = 6, alignment = 'center', # Lawful Neutral
                     bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
     else:
         fig.legend(custom_lines, labels,
@@ -179,3 +183,15 @@ def plotter(names, cols, labels, bigfirst = True):
 # labels = ['30', '40', '50', '60', '70', '80', '90', '95']
 # plotter([name, name2, name3, name4, name5, name6, name7, name8], 3, labels, False)
 
+kind = 'nepenv'
+if __name__ == '__main__':
+    if kind == 'nepenv':
+        name1 = 'nep_1'
+        name2 = 'nep_2'
+        name3 = 'nep_3'
+        name4 = 'nep_4'
+        name5 = 'nep_5'
+        name6 = 'nep_6'
+        names = [name1, name2, name3, name4, name5, name6]
+        labels = ['10', '20', '30', '40', '50', '60']
+        plotter(names, 3, labels, 'Neptunes with Diff. Envelopes', False)
