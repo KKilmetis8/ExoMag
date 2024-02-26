@@ -55,7 +55,7 @@ class apothicarios:
         self.reymag.append(raymag)
         self.rmax.append(rmax)
         
-def doer(names, many = 16):
+def doer(names, many = 8):
     apothikh = []
     for name in names:
         # Instanciate Holder Object
@@ -98,8 +98,8 @@ def plotter(names, cols, labels):
     # Makes the calculations
     planets = doer(names) 
 
-    fig, axs = plt.subplots(4,4, tight_layout = True, sharex = True,
-                           figsize = (14,14))
+    fig, axs = plt.subplots(2,4, tight_layout = True, sharex = True,
+                           figsize = (8, 6))
     
     custom_lines = []
     i = 0
@@ -136,7 +136,7 @@ def plotter(names, cols, labels):
     # axs[0].set_xlim(200, 10_000)
     # axs[1].set_xlim(200, 10_000)
 
-    fig.suptitle('Increasingly Puffier Jupiters', 
+    fig.suptitle('Increasingly Puffier Neptunes', 
                   fontsize = 15, y = 0.98)
     fig.text(0.47, -0.02, r' r/Radius', 
               fontsize = 15, transform = fig.transFigure)
@@ -164,7 +164,7 @@ def plotter(names, cols, labels):
                 bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
  #%%
 
-kind = 'puffer'
+kind = 'nepenv'
 if __name__ == '__main__':
     if kind == 'planets':
         name = 'neptest'
@@ -203,5 +203,15 @@ if __name__ == '__main__':
         name8 = 'jupenvtest7'
         labels = ['30', '40', '50', '60', '70', '80', '90', '95']
         plotter([name, name2, name3, name4, name5, name6, name7, name8], 4, labels)
+    if kind == 'nepenv':
+        name1 = 'nep_1'
+        name2 = 'nep_2'
+        name3 = 'nep_3'
+        name4 = 'nep_4'
+        name5 = 'nep_5'
+        name6 = 'nep_6'
+        names = [name1, name2, name3, name4, name5, name6]
+        labels = ['10', '20', '30', '40', '50', '60']
+        plotter(names, 2, labels)#, 'Neptunes with Diff. Envelopes')
     
     

@@ -176,8 +176,8 @@ def plotter(names, cols, labels, title, bigfirst = False):
     axs[0].set_xlim(200, 10_000)
     axs[0].set_yscale('log')
     #axs[0].set_ylim(1_000, 6_000)
-    axs[1].set_ylim(0, 50)
-    axs[2].set_ylim(0, 50)
+    axs[1].set_ylim(50, 400)
+    axs[2].set_ylim(50, 400)
     
     #axs[0].set_yscale('log')
     #axs[1].set_yscale('log')
@@ -202,11 +202,9 @@ def plotter(names, cols, labels, title, bigfirst = False):
             fontsize =  9, ncols = len(planets), alignment = 'center', # Lawful Neutral
             bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
 #%%    
-kind = 'se5envEL'
+kind = 'jupenv'
 if __name__ == '__main__':
     if kind == 'jupenv':
-        name1 = 'jup_e30'
-        name2 = 'jup_e40'
         name3 = 'jup_e50'
         name4 = 'jup_e60'
         name5 = 'jup_e70'
@@ -214,8 +212,8 @@ if __name__ == '__main__':
         name7 = 'jup_e90'
         name8 = 'jup_e95'
         name9 = 'jup_e98'
-        names = [name1, name2, name3, name4, name5, name6, name7, name8, name9]
-        labels = ['30', '40', '50', '60', '70', '80', '90', '95', '98']
+        names = [name3, name4, name5, name6, name7, name8, name9]
+        labels = ['50', '60', '70', '80', '90', '95', '98']
         plotter(names, 3, labels, 'Jupiter with Diff. Envelopes')
     if kind == 'nepenv':
         name1 = 'nep_1'

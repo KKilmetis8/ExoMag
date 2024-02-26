@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Feb 18 15:27:52 2024
+Created on Thu Feb 22 16:51:42 2024
+
+@author: konstantinos
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Feb 18 14:34:36 2024
 
 @author: konstantinos
 """
@@ -11,97 +19,102 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
-# 
 import src.prelude as c
-from src.Bfield.reynolds import rey_mag, profile_sorter
-
+from src.Bfield.reynolds import profile_sorter, rey_mag
+from src.Bfield.hardB import hardB
 
 class apothicarios:
     def __init__(self, name):
         self.name = name
         self.age = []
-        self.absolute = []
-        self.relative = []
+        self.F = []
+        self.avgrho = []
+        self.q0 = []
       
-    def __call__(self, age, absolute_h, relative_h):
-        self.age.append(age)
-        self.absolute.append(absolute_h)
-        self.relative.append(relative_h)
-        
-def dynsize_doer(names):
+    def __call__(self, age_h, F_h, avgrho_h, q0_h):#), lum2_h):
+        self.age.append(age_h)
+        self.F.append(F_h)
+        self.avgrho.append(avgrho_h)
+        self.q0.append(q0_h)
+      
+def doer(names):
+    # Count and generate profile lists
     apothikh = []
     for name in names:
-        # Instanciate Holder Object
-        hold = apothicarios(name)
+        # History data wrangling
+        # h_path = 'data/' + name + '/history_7.data'
+        # h = mr.MesaData(h_path)
+        # print(dir(h))
+        # h_age = np.round(10**h.log_star_age /  1e9, 2) # Gyr
         
-        # Get profiles
+        # Profile data wrangling and bookeeping
+        hold = apothicarios(name)
         p_path = 'data/' + name
         profiles = os.popen('ls ' + p_path + '/profile*.data').read()
         profiles = list(profiles.split("\n"))
         profiles.pop() # Remove last
         profiles = profile_sorter(profiles) # Guess what that does
-    
-        # Do the thing
-        for profile in profiles:
+        
+        for profile, i in zip(profiles, range(len(profiles))):
+            # Load data
             p = mr.MesaData(profile)
             r, reynolds_mag_number, age = rey_mag(p)
-            r *=  c.Rsol / c.Rearth
+            
+            # Get Rdyn
             R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
             try:
-                abs_dyn_size = np.abs(R_dynamo_active[0] - R_dynamo_active[-1]) 
+                Rdyn_end = R_dynamo_active[0] # it's the wrong way round
             except IndexError:
-                abs_dyn_size = 0
-            rel_dyn_size = 100 * abs_dyn_size / r[0]
-            hold(age, abs_dyn_size , rel_dyn_size)
-            
-        # Keep em
+                # Save
+                hold(age, 0, 0, 0)
+                continue
+            F, avgrho, q0 = hardB(p, R_dynamo_active, explore = True)
+            hold(age, F, avgrho / 1000, q0)#, L2)
         apothikh.append(hold)
-        print('---')
-
     return apothikh
 
-        
-def plotter(names, cols, labels, title):
-    
+
+def plotter(names, cols, labels, title, 
+            bigfirst = False, met_hyd_lines = False):
     # Specify Palettes
     if cols == 1:
         colors = [c.AEK, 'maroon' , 'k', 'maroon']
+        colors2 = ['b', 'r', 'g'] 
+
     elif cols == 2:
         colors = [c.darkb, c.cyan, c.prasinaki, c.yellow, c.kroki, c.reddish]
+        
     elif cols == 3:
         colors = [c.c91, c.c92, c.c93, c.c94, c.c95, c.c96, c.c97, c.c98, c.c99]
 
-    
     # Makes the calculations
-    planets = dynsize_doer(names) 
-    fig, axs = plt.subplots(1,2, tight_layout = True, sharex = True,
-                           figsize = (7,4))
-    custom_lines = []
-    for planet, color, label in zip(planets, colors, labels):
-        axs[0].plot(planet.age , planet.absolute, color = color)
-        axs[1].plot(planet.age , planet.relative, color = color)
-        
-        custom_lines.append( Line2D([0], [0], color = color, 
-                                    label = label))
-    # # Make nice
-    axs[0].set_ylabel('Absolute Dynamo Region [R$_\oplus$]', fontsize = 14)
-    axs[1].set_ylabel('Relative Dynamo Region [$\%$]', fontsize = 14)
-    
-    axs[0].grid()
-    axs[1].grid()
-    
-    axs[0].set_xlim(300, 10_000)
+    planets = doer(names) 
 
-    fig.suptitle(title,  fontsize = 15, y = 0.98)
+    fig, axs = plt.subplots(1,1, tight_layout = True, sharex = True,
+                           figsize = (5,4))
+    
+    custom_lines = []
+    for planet, color, i in zip(planets, colors, range(len(planets))):
+        axs.plot(planet.age, planet.F, color = color)
+        # Legend
+        custom_lines.append( Line2D([0], [0], color = colors[i], 
+                                    label = labels[i]))
+        
+    # Make nice
+    axs.set_ylabel('Efficiency Factor', fontsize = 14)
+    axs.grid()
+    axs.set_xlim(500, 10_000)
+    axs.set_yscale('log')
+
+    fig.suptitle(title, 
+                  fontsize = 18, y = 0.98)
     fig.text(0.47, -0.02, r' Age [Myr]', 
               fontsize = 15, transform = fig.transFigure)
-
-
     fig.legend(custom_lines, labels,
-            fontsize =  9, ncols = len(planets), alignment = 'center', # Lawful Neutral
-            bbox_to_anchor=(0.95, -0.03), bbox_transform = fig.transFigure,)
-#%%
-kind = 'nepenv'
+            fontsize =  9, ncols = len(planets) // 2, alignment = 'center', # Lawful Neutral
+            bbox_to_anchor=(0.8, -0.03), bbox_transform = fig.transFigure,)  
+#%%    
+kind = 'jupenv'
 if __name__ == '__main__':
     if kind == 'jupenv':
         name1 = 'jup_e30'
@@ -115,7 +128,8 @@ if __name__ == '__main__':
         name9 = 'jup_e98'
         names = [name1, name2, name3, name4, name5, name6, name7, name8, name9]
         labels = ['30', '40', '50', '60', '70', '80', '90', '95', '98']
-        plotter(names, 3, labels, 'Jupiter with Diff. Envelopes')
+        plotter(names, 3, labels, 'Jupiter with Diff. Envelopes', 
+                met_hyd_lines=True)
     if kind == 'nepenv':
         name1 = 'nep_1'
         name2 = 'nep_2'
@@ -158,5 +172,3 @@ if __name__ == '__main__':
         names = [name1, name3, name4, name5, name6, name7, name8]
         labels = ['0.02', '0.08', '0.12', '0.16', '0.20', '0.24', '0.28',]
         plotter(names, 3, labels, 'Jups far away')
-    
-    
