@@ -59,6 +59,7 @@ n3 = '#2a4891'
 n4 = '#4e5291'
 n5 = '#8996cb'
 n6 = '#c3c5ea'
+
 # Plotting
 import matplotlib.pyplot as plt
 plt.rcParams['text.usetex'] = True
