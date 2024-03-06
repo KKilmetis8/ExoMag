@@ -6,7 +6,7 @@
          ! Declare variables for custom saving
          ! Needs to be on top of the function for some godforsaken reason
           logical :: flag
-          real, parameter :: tolerance = 0.1  ! Set your desired tolerance
+          real, parameter :: tolerance = 100  ! Set your desired tolerance
           real :: agenow
           real, dimension(100) :: wanted_ages  ! Adjust the array size as needed
           integer :: i
