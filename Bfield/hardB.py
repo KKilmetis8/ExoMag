@@ -156,8 +156,8 @@ def plotter(names, cols, labels, title, bigfirst = False):
             axs[0].plot(planet.age, planet.Bdyn, color = color, lw=5)
             axs[1].plot(planet.age, planet.Bdip, color = color, lw=5)
         
-        axs[0].plot(planet.age, planet.F, color = color)
-        axs[1].plot(planet.age, planet.Bdyn, color = color)
+        axs[0].scatter(planet.age, planet.F, color = color, s = 20)
+        axs[1].scatter(planet.age, planet.Bdyn, color = color, s = 20)
         axs[2].plot(planet.age, planet.Bdip, color = color)
         
         # Legend
@@ -173,11 +173,11 @@ def plotter(names, cols, labels, title, bigfirst = False):
     axs[1].grid()
     axs[2].grid()
     
-    axs[0].set_xlim(200, 10_000)
+    # axs[0].set_xlim(200, 10_000)
     axs[0].set_yscale('log')
     #axs[0].set_ylim(1_000, 6_000)
-    axs[1].set_ylim(50, 400)
-    axs[2].set_ylim(50, 400)
+    #axs[1].set_ylim(50, 400)
+    #axs[2].set_ylim(50, 400)
     
     #axs[0].set_yscale('log')
     #axs[1].set_yscale('log')
@@ -202,28 +202,28 @@ def plotter(names, cols, labels, title, bigfirst = False):
             fontsize =  9, ncols = len(planets), alignment = 'center', # Lawful Neutral
             bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
 #%%    
-kind = 'jupenv'
+kind = 'jupenv_zero'
 if __name__ == '__main__':
-    if kind == 'jupenv':
-        name3 = 'jup_e50'
-        name4 = 'jup_e60'
-        name5 = 'jup_e70'
-        name6 = 'jup_e80'
-        name7 = 'jup_e90'
-        name8 = 'jup_e95'
-        name9 = 'jup_e98'
-        names = [name3, name4, name5, name6, name7, name8, name9]
-        labels = ['50', '60', '70', '80', '90', '95', '98']
+    if kind == 'jupenv_zero':
+        name3 = 'jup3_e90_zero'
+        name4 = 'jup5_e95_zero'
+        name5 = 'jup3_e3_zero'
+        name6 = 'jup3_e3_zero'
+        name7 = 'jup3_e3_zero'
+        name8 = 'jup3_e3_zero'
+        name9 = 'jup3_e98_zero'
+        names = [name4]#, name4, name9]
+        labels = ['95']#, '95', '98']
         plotter(names, 3, labels, 'Jupiter with Diff. Envelopes')
-    if kind == 'nepenv':
-        name1 = 'nep_1'
-        name2 = 'nep_2'
-        name3 = 'nep_3'
-        name4 = 'nep_4'
-        name5 = 'nep_5'
-        name6 = 'nep_6'
+    if kind == 'nepenv_zero':
+        name1 = 'nep2_e3_zero'
+        name2 = 'nep2_e4_zero'
+        name3 = 'nep2_e5_zero'
+        name4 = 'nep2_e6_zero'
+        name5 = 'nep2_e7_zero'
+        name6 = 'nep2_e8_zero'
         names = [name1, name2, name3, name4, name5, name6]
-        labels = ['10', '20', '30', '40', '50', '60']
+        labels = ['3', '4', '5', '6', '7', '8']
         plotter(names, 3, labels, 'Neptunes with Diff. Envelopes')
     if kind == 'se5env':
         name1 = 'se58'
