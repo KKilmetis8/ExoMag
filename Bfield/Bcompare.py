@@ -36,8 +36,8 @@ def plotter(names, names2, names3, cols, labels, title, bigfirst = True):
             axs[0].plot(planet.age, planet.Bdyn, color = color, lw=5)
             axs[1].plot(planet.age, planet.Bdip, color = color, lw=5)
                 
-        axs[0].plot(planet.age, planet.Bdyn, color = color)
-        axs[1].plot(planet.age, planet.Bdip, color = color)
+        axs[0].loglog(planet.age, planet.Bdyn, color = color)
+        axs[1].loglog(planet.age, planet.Bdip, color = color)
         
         # Legend
         custom_lines.append( Line2D([0], [0], color = colors[i], 
@@ -49,9 +49,13 @@ def plotter(names, names2, names3, cols, labels, title, bigfirst = True):
     
     axs[0].grid()
     axs[1].grid()
-
-    axs[0].set_xlim(200, 10_000)
-    axs[0].set_ylim(0, 600)
+    axs[0].set_xlim(450, 10_000)
+    if 'jup' in names[0]:
+        axs[0].set_ylim(1e0, 550)
+        axs[1].set_ylim(1e0, 550)
+    elif 'nep' in names[0]:
+        axs[0].set_ylim(0, 45)
+        axs[1].set_ylim(0, 45)
     #axs[1].set_ylim(0, 200)
 
     # axs[0].set_ylim(300, 600)
@@ -84,27 +88,34 @@ def plotter(names, names2, names3, cols, labels, title, bigfirst = True):
                 fontsize =  14, ncols = 3, alignment = 'center', # Lawful Neutral
                 bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
 #%%    
-# name = 'jup13'
-# name2 = 'jup14'
-# name3 = 'jup15'
-# name4 = 'jup16'
-# name5 = 'jup17'
-# name6 = 'jup11'
-
-# labels = ['0.025 AU', '0.035 AU', '0.045 AU', '0.05 AU', '0.1 AU', '0.5 AU']
-# plotter([name, name2, name3, name4, name5, name6], 2, labels, False)
-
-# name = 'jupenvtest1'
-# name2 = 'jupenvtest2'
-# name3 = 'jup17'
-# name4 = 'jupenvtest3'
-# name5 = 'jupenvtest4'
-# name6 = 'jupenvtest5'
-# name7 = 'jupenvtest6'
-# name8 = 'jupenvtest7'
-# labels = ['30', '40', '50', '60', '70', '80', '90', '95']
-# plotter([name, name2, name3, name4, name5, name6, name7, name8], 3, labels, False)
-
-name = 'se5_e002_a03_EL'
-labels = ['Scaling', 'F=1', 'Hard']
-plotter([name], [name], [name], 1, labels, r'Superearth $5 M_\oplus$ 0.01\% $\alpha$=0.1 AU ', False)
+kind = 'jup_e94_zero_a01_s9'
+if kind == 'jup_e94_zero_a01_s7':
+    name = 'jup_e94_zero_a01_s7'
+    labels = ['Scaling', 'F=1', 'Hard']
+    plotter([name], [name], [name], 1, labels, 
+            r'Jupiter $317 M_\oplus$ 94\% $\alpha$=0.1 AU S=7 kb/bar', False)
+if kind == 'jup_e94_zero_a01_s8':
+    name = 'jup_e94_zero_a01_s8'
+    labels = ['Scaling', 'F=1', 'Hard']
+    plotter([name], [name], [name], 1, labels, 
+            r'Jupiter $317 M_\oplus$ 94\% $\alpha$=0.1 AU S=8 kb/bar', False)
+if kind == 'jup_e94_zero_a01_s9':
+    name = 'jup_e94_zero_a01_s9'
+    labels = ['Scaling', 'F=1', 'Hard']
+    plotter([name], [name], [name], 1, labels, 
+            r'Jupiter $317 M_\oplus$ 94\% $\alpha$=0.1 AU S=9 kb/bar', False)
+if kind == 'jup_e94_zero_autoS':
+    name = 'jup_e94_zero_autoS'
+    labels = ['Scaling', 'F=1', 'Hard']
+    plotter([name], [name], [name], 1, labels, 
+            r'Jupiter $317 M_\oplus$ 94\% $\alpha$=0.1 AU autoS', False)
+##
+if kind == 'jup_e94_zero_a001_s8':
+    name = 'jup_e94_zero_a001_s8'
+    labels = ['Scaling', 'F=1', 'Hard']
+    plotter([name], [name], [name], 1, labels, 
+            r'Jupiter $317 M_\oplus$ 94\% $\alpha$=0.01 AU S=8 kb/bar', False)
+if kind == 'nep_e4_zero_7s':
+    name = 'nep_e4_zero_7s'
+    labels = ['Scaling', 'F=1', 'Hard']
+    plotter([name], [name], [name], 1, labels, r'Neptune $17 M_\oplus$ 4\% $\alpha$=0.1 AU ', False)

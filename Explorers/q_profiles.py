@@ -77,7 +77,7 @@ def doer(name, many = 9):
             Rdyn_end = R_dynamo_active[-1] # it's the wrong way round
         except IndexError:
             # Save
-            hold = apothicarios(name, age, r[-1], r[0])
+            hold = apothicarios(name, age)
             apothikh.append(hold)
             continue
         hold = apothicarios(name, age) # Instanciate Holder Object
@@ -90,11 +90,14 @@ def doer(name, many = 9):
 #%%
 fig, axs = plt.subplots(2, 4, figsize = (12, 5), tight_layout = True, 
                         sharex = True, sharey = True)
-planet = doer('jup_e90_zero')
-fig.suptitle('Jupiter 317 $M_\oplus$, 90 $\%$ $f_{env}$, 0.1 AU, No Escape', 
+planet = doer('nep_e1_zero')
+fig.suptitle('Neptune 10 $M_\oplus$, 10 $\%$ $f_{env}$, 0.1 AU, No Escape', 
              fontsize = 20)
 for ax, prof in zip(axs.reshape(-1), range(1,9)):
-    ax.plot(planet[prof].Rdyn[0][1:], planet[prof].q[0], c ='k')
+    try:
+        ax.plot(planet[prof].Rdyn[0][1:], planet[prof].q[0], c ='k')
+    except IndexError:
+        continue
     ax.set_title(str(planet[prof].age) + ' Myrs')
     ax.grid()
     

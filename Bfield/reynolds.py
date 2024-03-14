@@ -13,7 +13,6 @@ import mesa_reader as mr
 import os
 # 
 import src.prelude as c
-
 def profile_sorter(profiles):
     ''' yes this is N^2, yes I could make this better, this is not a problem'''
     zs = np.arange(1, len(profiles)+1) # Zahlen!
@@ -40,6 +39,45 @@ def rey_mag(p):
     
     age = np.round(p.star_age /  1e6, 2)
     return r, reynolds_mag, age
+#%%
+def dynamo_region(p, normalize = False):
+    r, rey_mag_num, age = rey_mag(p)
+    regions = []
+    current_region = None
+    for i, rmn in enumerate(rey_mag_num):
+        if rmn > c.critical_rey_mag_num:
+            if current_region is None:
+                current_region = [i] # Make a new region
+            else:
+                current_region.append(i)
+                
+        # Finish this region
+        elif current_region is not None:
+            regions.append(current_region)
+            current_region = None
+            
+    # Save the last one
+    if current_region is not None:
+       regions.append(current_region)
+       
+    # Return the largest one
+    dyn_region_len = 0 # arbitrary
+    for i, region in enumerate(regions):
+        temp_len = len(region)
+        if temp_len > dyn_region_len:
+            dyn_region_idx = i
+            dyn_region_len = temp_len
+    if dyn_region_len > 0:
+        dynamo_region = regions[dyn_region_idx]
+    else: 
+        return [], [], age
+    
+    if normalize:
+        return r[dynamo_region] / r[0], rey_mag_num[dynamo_region], age
+    else:
+        return r[dynamo_region], rey_mag_num[dynamo_region], age
+
+#%%
 
 class apothicarios:
     def __init__(self, name):
@@ -55,7 +93,7 @@ class apothicarios:
         self.reymag.append(raymag)
         self.rmax.append(rmax)
         
-def doer(names, many = 8):
+def doer(names, many = 16):
     apothikh = []
     for name in names:
         # Instanciate Holder Object
@@ -74,15 +112,15 @@ def doer(names, many = 8):
         # Do the thing
         for i in indices:
             p = mr.MesaData(profiles[i])
-            r, reynolds_mag_number, age = rey_mag(p)
-            hold(age, r, reynolds_mag_number, r[0])
+            r, reynolds_mag_number, age = dynamo_region(p, normalize = True)
+            hold(age, r, reynolds_mag_number, 0)
             
         # Keep em
         apothikh.append(hold)
     return apothikh
 
         
-def plotter(names, cols, labels):
+def plotter(names, cols, labels, title):
     
     # Specify Palettes
     if cols == 1:
@@ -92,13 +130,12 @@ def plotter(names, cols, labels):
     elif cols == 3:
         colors = ['dodgerblue', 'forestgreen', 'darkorange']
     elif cols == 4:
-        colors = [c.c91, c.c92, c.c93, c.c94, c.c95, c.c96, c.c97, c.c98, c.c99]
+        colors = [c.c91, c.c92, c.c93, c.c95, c.c96, c.c98, c.c99,]
 
-    
     # Makes the calculations
     planets = doer(names) 
 
-    fig, axs = plt.subplots(2,4, tight_layout = True, sharex = True,
+    fig, axs = plt.subplots(4,4, tight_layout = True, sharex = True,
                            figsize = (8, 6))
     
     custom_lines = []
@@ -106,7 +143,7 @@ def plotter(names, cols, labels):
     for ax in axs.reshape(-1):
         plot_age = 0
         for planet, color, label in zip(planets, colors, labels):
-            ax.plot(planet.r[i] / planet.rmax[i], planet.reymag[i], color = color)
+            ax.plot(planet.r[i], planet.reymag[i], color = color)
             # ax.axvline(planet.rmax[i], color = 'k', linestyle = 'dashed')
             ax.set_yscale('log')
             plot_age += planet.age[i]
@@ -122,7 +159,7 @@ def plotter(names, cols, labels):
         plot_age /= len(planets)
         plot_age = np.round(plot_age, decimals = 0)
         ax.set_title(r"Age $\sim$" + str(plot_age) + ' Myrs')
-        
+        ax.set_xlim(0.8, 1.1)
         # Change profile
         i += 1
         
@@ -136,7 +173,7 @@ def plotter(names, cols, labels):
     # axs[0].set_xlim(200, 10_000)
     # axs[1].set_xlim(200, 10_000)
 
-    fig.suptitle('Increasingly Puffier Neptunes', 
+    fig.suptitle('Increasingly Puffier Jupiters', 
                   fontsize = 15, y = 0.98)
     fig.text(0.47, -0.02, r' r/Radius', 
               fontsize = 15, transform = fig.transFigure)
@@ -160,20 +197,11 @@ def plotter(names, cols, labels):
                     bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
     else:
         fig.legend(custom_lines, labels,
-                fontsize =  14, ncols = 3, alignment = 'center', # Lawful Neutral
+                fontsize =  14, ncols = 5, alignment = 'center', # Lawful Neutral
                 bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
- #%%
-
-kind = 'nepenv'
+#%%
+kind = 'jups_thekink'
 if __name__ == '__main__':
-    if kind == 'planets':
-        name = 'neptest'
-        name2 = 'supearth'
-        name3 = 'juptest'
-        labels_p = [r'Superearth 2$M_\oplus$, 1$\%$', 
-                                  r'Neptune 17$M_\oplus$, 30$\%$', 
-                              r'Jupiter 317$M_\oplus$, 50$\%$']
-        plotter([name, name2, name3], 3, labels_p)
     
     if kind == 'jups':
         name = 'jup13'
@@ -184,25 +212,28 @@ if __name__ == '__main__':
         name6 = 'jup11'
         labels = ['0.025 AU', '0.035 AU', '0.045 AU', '0.05 AU', '0.1 AU', '0.5 AU']
         plotter([name, name2, name3, name4, name5, name6], 2, labels)
-        
+    if kind == 'jups_thekink':
+        name = 'jup_e94_zero_a01_s8'
+        name2 = 'jup_e94_zero_a01'
+        labels = ['94%', '92%',]
+        plotter([name, name2,], 1, labels, 'jups_thekink')
     if kind == 'noirr':
         name = 'jup17'
         name2 = 'jupfaraway'
         name3 = 'jupnoirr'
         labels = ['Hot Jup', 'Cold Jup', 'Hot Jup - No Irr']
         plotter([name, name2, name3], 1, labels)
-    
-    if kind == 'puffer':
-        name = 'jupenvtest1'
-        name2 = 'jupenvtest2'
-        name3 = 'jup17'
-        name4 = 'jupenvtest3'
-        name5 = 'jupenvtest4'
-        name6 = 'jupenvtest5'
-        name7 = 'jupenvtest6'
-        name8 = 'jupenvtest7'
-        labels = ['30', '40', '50', '60', '70', '80', '90', '95']
-        plotter([name, name2, name3, name4, name5, name6, name7, name8], 4, labels)
+    if kind == 'jupenv_zero':
+        name3 = 'jup_e85_zero'
+        name4 = 'jup_e90_zero'
+        name5 = 'jup_e92_zero'
+        name6 = 'jup_e94_zero'
+        name7 = 'jup_e96_zero'
+        #name8 = 'jup_e97_zero'
+        #name9 = 'jup3_e98_zero'
+        names = [name3, name4, name5, name6, name7]#, name4, name9]
+        labels = ['85', '90', '92', '94', '96',]#, '95', '98']
+        plotter(names, 4, labels, 'Increasingly Puffier Jupiters')
     if kind == 'nepenv':
         name1 = 'nep_1'
         name2 = 'nep_2'

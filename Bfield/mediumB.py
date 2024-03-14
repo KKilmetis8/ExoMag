@@ -11,7 +11,8 @@ from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
 import src.prelude as c
-from src.Bfield.reynolds import rey_mag, profile_sorter
+from src.Utilities.profile_sorter import profile_sorter
+from src.Bfield.reynolds import rey_mag, dynamo_region
 from src.Bfield.B_reynolds import ReyB_doer
 #%%
 
@@ -49,12 +50,17 @@ def medB_doer(names):
         for profile, i in zip(profiles, range(len(profiles))):
             # Load data
             p = mr.MesaData(profile)
-            r, reynolds_mag_number, age = rey_mag(p)
+            r = np.power(10, p.logR)
+            R_dynamo_active, rmn, age = dynamo_region(p)
+            try:
+                Rdyn_end = R_dynamo_active[0] # it's the wrong way round
+                Rdyn_start = R_dynamo_active[-1]
+                # R_dynamo_active *= c.Rsol / c.Rearth
+            except IndexError:
+                # Save
+                hold(age, hold.Bdyn[-1], hold.Bdip[-1])
+                continue  
             
-            # Get Rdyn
-            R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
-            Rdyn_end = R_dynamo_active[0] # it's the wrong way round
-            Rdyn_start = R_dynamo_active[-1]
             start = np.argmin(np.abs(r - Rdyn_start))
             end = np.argmin(np.abs(r - Rdyn_end))
             
@@ -82,7 +88,7 @@ def medB_doer(names):
             #print(B_dyn)
             # Get Dipole
             dynamo = (r[0] - Rdyn_end) / r[0]
-            B_dip =  B_dyn * np.power( 1 - dynamo, 3)
+            B_dip =  B_dyn * np.power( 1 - dynamo, 3) / np.sqrt(2)
             
             # Save
             hold(age, B_dyn, B_dip)

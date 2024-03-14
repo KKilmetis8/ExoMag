@@ -11,7 +11,8 @@ from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
 import src.prelude as c
-from src.Bfield.reynolds import rey_mag, profile_sorter
+from src.Utilities.profile_sorter import profile_sorter
+from src.Bfield.reynolds import rey_mag, dynamo_region
 #%%
 
 def dipole(M, R, L, Rdyn):
@@ -29,7 +30,7 @@ def dipole(M, R, L, Rdyn):
     '''
     B_dyn = 4.8e3 * np.power(M * L**2, 1/6) * np.power(R, -7/6)
     dynamo = (R - Rdyn) / R
-    B_dip =  B_dyn * np.power( 1 - dynamo, 3)
+    B_dip =  B_dyn * np.power( 1 - dynamo, 3) / np.sqrt(2)
     
     return B_dyn, B_dip
 
@@ -62,23 +63,27 @@ def ReyB_doer(names):
         profiles.pop() # Remove last
         profiles = profile_sorter(profiles) # Guess what that does
         for profile, i in zip(profiles, range(len(profiles))):
-            # Load data
             p = mr.MesaData(profile)
-            r, reynolds_mag_number, age = rey_mag(p)
-            
-            # Get Rdyn
-            R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
-            Rdyn = R_dynamo_active[0] # it's the wrong way round
-            idx = np.argmin(np.abs( r - Rdyn))
+            r = np.power(10, p.logR)
+            R_dynamo_active, rmn, age = dynamo_region(p)
+            try:
+                Rdyn_end = R_dynamo_active[0] # it's the wrong way round
+                Rdyn_start = R_dynamo_active[-1]
+                # R_dynamo_active *= c.Rsol / c.Rearth
+            except IndexError:
+                # Save
+                hold(age, hold.Bdyn[-1], hold.Bdip[-1])
+                continue 
+            idx = np.argmin(np.abs( r - Rdyn_end))
             
             # M L R for dynamo surface
             M = p.star_mass
-            R = Rdyn
+            R = Rdyn_end
             # print(R * c.Rsol / c.Rjup)
             L = p.luminosity[idx]
             
             # Calc B
-            B_dyn, B_dip = dipole(M, R, L, Rdyn)
+            B_dyn, B_dip = dipole(M, R, L, Rdyn_end)
             
             # Save
             hold(age, B_dyn, B_dip)

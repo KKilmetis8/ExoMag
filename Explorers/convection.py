@@ -12,7 +12,8 @@ from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
 import src.prelude as c
-from src.Bfield.reynolds import profile_sorter, rey_mag
+from src.Bfield.reynolds import rey_mag, dynamo_region
+from src.Utilities.profile_sorter import profile_sorter
 from src.Bfield.hardB import convective_flux
 
 def q_explore(p, Rdyns):
@@ -42,15 +43,15 @@ class apothicarios:
         self.q0 = []
         self.dyn_start = []
         self.dyn_end = []
-    def __call__(self, age_h, rmax_h, q_h, q0_h, dyn_start_h, dyn_end_h):#), lum2_h):
+        self.reynolds = []
+    def __call__(self, age_h, q_h, q0_h, dyn_start_h, dyn_end_h, reynolds_h = 0):#), lum2_h):
         self.age.append(age_h)
-        self.rmax.append(rmax_h)
         self.q.append(q_h)
         self.q0.append(q0_h)
         self.dyn_start.append(dyn_start_h)
         self.dyn_end.append(dyn_end_h)
+        self.reynolds.append(reynolds_h)
 
-      
 def doer(names):
     # Count and generate profile lists
     apothikh = []
@@ -66,18 +67,21 @@ def doer(names):
         for profile, i in zip(profiles, range(len(profiles))):
             # Load data
             p = mr.MesaData(profile)
-            r, reynolds_mag_number, age = rey_mag(p)
-            r *= c.Rsol / c.Rearth
+            # r, rmn, age = rey_mag(p)
+            # r *= c.Rsol / c.Rearth
             # Get Rdyn
-            R_dynamo_active = r[reynolds_mag_number > c.critical_rey_mag_num]
+            R_dynamo_active, rmn, age = dynamo_region(p)
+            # R_dynamo_active = r[rmn > c.critical_rey_mag_num]
+            # rmn = rmn[rmn > c.critical_rey_mag_num]
             try:
                 Rdyn_end = R_dynamo_active[0] # it's the wrong way round
+                R_dynamo_active *= c.Rsol / c.Rearth
             except IndexError:
                 # Save
-                hold(age, 0, 0, 0)
+                hold(age, 0, 0, 0, 0 ,0)
                 continue
             q, q0, Rdyns_start, Rdyn_end = q_explore(p, R_dynamo_active)
-            hold(age, r[0], q, q0, Rdyns_start, Rdyn_end)#, L2)
+            hold(age, q, q0, Rdyns_start, Rdyn_end, rmn[0])#, L2)
         apothikh.append(hold)
     return apothikh
 
@@ -91,100 +95,74 @@ def plotter(names, cols, title):
     
     custom_lines = []
     for planet in planets:
-        ax.plot(planet.age, planet.q0, color = c.reddish)
         #axs[0].plot(planet.age, planet.q0, color = 'k')
-        ax2=ax.twinx()
-        ax2.plot(planet.age, planet.dyn_start, c.cyan)
-        ax2.plot(planet.age, planet.dyn_end, c.kroki,)
+        ax.plot(planet.age, planet.dyn_start, c.cyan)
+        ax.plot(planet.age, planet.dyn_end, c.kroki,)
         
-    #Legend
-    custom_lines.append( Line2D([0], [0], c = c.reddish, label = 'q'))
-    custom_lines.append( Line2D([0], [0], c = c.cyan, label = 'Start'))
-    custom_lines.append( Line2D([0], [0], c = c.kroki, label = 'End'))
+        ax2=ax.twinx()
+        ax2.plot(planet.age, planet.reynolds, color = c.c97)
+        ax2.set_ylabel(r'Reynolds Mag', fontsize = 14 , rotation = 270, labelpad=16)
+        
+    # import Mors as mors 
+    # axlum = ax.twinx()
+    # star = mors.Star(Mstar=1.0, Omega=8.0)
+    # axlum.plot(star.Tracks['Age'], np.log10(star.Tracks['Lbol']))
+    # axlum.set_ylabel(r'$\log(L_{bol} [erg/s])$ ', fontsize = 14, rotation = 270, labelpad = 17)
+    # # rotation = 270, labelpad = 17)
 
-    
     # Make nice
-    ax.set_xlabel('Age [Myrs]')
-    ax.set_ylabel(r'Convective Flux at Rdyn Start [W/m$^2$]', fontsize = 14)
-    ax2.set_ylabel('Distance from core [r/R$_p$]', fontsize = 14, rotation = 270,
-                   labelpad = 17)
-    ax2.set_yscale('log')
+    # ax2.set_ylabel(r'Convective Flux at Rdyn Start [W/m$^2$]', fontsize = 14, 
+    # rotation = 270, labelpad = 17)
+    ax.set_ylabel('Distance from core [r/R$_p$]', fontsize = 14,
+                    labelpad = 17)
+    # ax2.set_yscale('log')
     # ax.grid()
     # ax2.grid()
     
     # axs[0].set_yscale('log')
     # axs[2].set_yscale('log')
-    # axs[0].set_xlim(100, 10_000)
+    ax.set_xlim(200, 11_000)
     # axs[1].set_ylim(7.2,14)
     # axs[2].set_ylim(0,1.5e-5)
 
     fig.suptitle(title, 
-                  fontsize = 18, y = 0.98)
+                  fontsize = 16, y = 0.98)
     fig.text(0.47, -0.02, r' Age [Myr]', 
               fontsize = 15, transform = fig.transFigure)
-    fig.legend(custom_lines, ['Start', 'End', 'q(Rdyn_start)'],
-            fontsize =  9, ncols = 1, alignment = 'center', # Lawful Neutral
-            bbox_to_anchor=(0.83, 0.65), bbox_transform = fig.transFigure,)  
+    
+    # Legend
+    custom_lines.append( Line2D([0], [0], c = c.reddish))
+    custom_lines.append( Line2D([0], [0], c = c.cyan))
+    custom_lines.append( Line2D([0], [0], c = c.c97))
+    labels = ['End', 'Start', 'Reynolds Mag']
+    fig.legend(custom_lines, labels,
+            fontsize =  9, ncols = 3, alignment = 'center', # Lawful Neutral
+            bbox_to_anchor=(0.87, -0.04), bbox_transform = fig.transFigure,)  
 #%%    
-kind = 'jup'
+kind = 'jup_autoS'
 if __name__ == '__main__':
     if kind == 'jup':
-        name = 'jup_e95'
+        name = 'jup_e94_zero'
         label = 'Jupiter'
-        plotter([name], 1, r'Jupiter $M_\odot$ 317, f$_0$ = 90 $\%$, a = 0.1, EL')
-    if kind == 'jupenv':
-        name1 = 'jup_e30'
-        name2 = 'jup_e40'
-        name3 = 'jup_e50'
-        name4 = 'jup_e60'
-        name5 = 'jup_e70'
-        name6 = 'jup_e80'
-        name7 = 'jup_e90'
-        name8 = 'jup_e95'
-        name9 = 'jup_e98'
-        names = [name1, name2, name3, name4, name5, name6, name7, name8, name9]
-        labels = ['30', '40', '50', '60', '70', '80', '90', '95', '98']
-        plotter(names, 3, labels, 'Jupiter with Diff. Envelopes', 
-                met_hyd_lines=True)
-    if kind == 'nepenv':
-        name1 = 'nep_1'
-        name2 = 'nep_2'
-        name3 = 'nep_3'
-        name4 = 'nep_4'
-        name5 = 'nep_5'
-        name6 = 'nep_6'
-        names = [name1, name2, name3, name4, name5, name6]
-        labels = ['10', '20', '30', '40', '50', '60']
-        plotter(names, 3, labels, 'Neptunes with Diff. Envelopes')
-    if kind == 'se5env':
-        name1 = 'se58'
-        name2 = 'se59'
-        name3 = 'se510'
-        name4 = 'se511'
-        name5 = 'se512'
-        name6 = 'se513'
-        name7 = 'se514'
-        names = [name1, name2, name3, name4, name5, name6, name7]
-        labels = ['1', '2', '6', '12', '18', '24', '30']
-        plotter(names, 3, labels, '5xEarth with Diff. Envelopes')
-    if kind == 'se5envEL':
-        name1 = 'se5_e001_a03_EL'
-        name2 = 'se5_e002_a03_EL'
-        name3 = 'se5_e005_a03_EL'
-        name4 = 'se5_e01_a03_EL'
-        name5 = 'se5_e013_a03_EL'
-        name6 = 'se5_e017_a03_EL'
-        names = [name1, name2, name3, name4, name5, name6]
-        labels = ['1', '2', '5', '10', '13', '17',]
-        plotter(names, 3, labels, '5xEarth with Diff. Envelopes')
-    if kind == 'jup-sep':
-        name1 = 'jup_e95_a002'
-        name3 = 'jup_e95_a008_2'
-        name4 = 'jup_e95_a012'
-        name5 = 'jup_e95_a016'
-        name6 = 'jup_e95_a020'
-        name7 = 'jup_e95_a024'
-        name8 = 'jup_e95_a028'
-        names = [name1, name3, name4, name5, name6, name7, name8]
-        labels = ['0.02', '0.08', '0.12', '0.16', '0.20', '0.24', '0.28',]
-        plotter(names, 3, labels, 'Jups far away')
+        plotter([name], 1, r'Jupiter $M_\oplus$ 317, f$_0$ = 94 $\%$, a = 0.1 AU, Zero')
+    if kind == 'jup96':
+        name = 'jup_e96_zero'
+        label = 'Jupiter'
+        plotter([name], 1, r'Jupiter $M_\oplus$ 317, f$_0$ = 96 $\%$, a = 0.1 AU, Zero')
+    if kind == 'jup92':
+        name = 'jup_e92_zero'
+        label = 'Jupiter'
+        plotter([name], 1, r'Jupiter $M_\oplus$ 317, f$_0$ = 92 $\%$, a = 0.1 AU, Zero')
+    if kind == 'jup_autoS':
+        name = 'jup_e94_zero_autoS'
+        label = 'Jupiter'
+        plotter([name], 1, r'Jupiter $M_\oplus$ 317, f$_0$ = 94 $\%$, a = 0.1 AU, Zero AutoS',)
+    if kind == 'nep10':
+        name = 'nep_e10_zero_7s'
+        label = 'Jupiter'
+        plotter([name], 1, r'Neptune $M_\oplus$ 17, f$_0$ = 10 $\%$, a = 0.1 AU, Zero',)
+    if kind == 'nep1':
+        name = 'nep_e1_zero'
+        label = 'Jupiter'
+        plotter([name], 1, r'Neptune $M_\oplus$ 17, f$_0$ = 1 $\%$, a = 0.1 AU, Zero',)
+    
