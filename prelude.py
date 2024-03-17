@@ -33,6 +33,7 @@ mu_0_SI = 4 * np.pi * 10**(-7)
 porp_c = 0.63
 # Colors
 AEK = '#F1C410'
+AEK_rgb = np.array([241, 196, 16])
 # 6 palette
 darkb = '#264653'
 cyan = '#2A9D8F'
@@ -47,8 +48,10 @@ c92 = '#f07c12'
 c93 = '#ffc200'
 c94 = '#90bc1a'
 c95 = '#21b534'
+c95_rgb = np.array([33, 181, 52])
 c96 = '#0095ac'
 c97 = '#1f64ad'
+c97_rgb = np.array([31,100,173])
 c98 = '#4040a0'
 c99 = '#903498'
 

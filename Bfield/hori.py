@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 22 05:49:18 2023
+Created on Sat Mar 16 19:13:08 2024
 
 @author: konstantinos
 """
@@ -11,89 +11,52 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import mesa_reader as mr
 import os
-# 
 import src.prelude as c
-def profile_sorter(profiles):
-    ''' yes this is N^2, yes I could make this better, this is not a problem'''
-    zs = np.arange(1, len(profiles)+1) # Zahlen!
-    new_profiles = []
-    for z in zs: 
-        z = str(z)
-        z = 'e' + z + '.' # don't mix 10 with 1
-        profile = [s for s in profiles if z in s] 
-        new_profiles.append(profile[0]) # only 1 match idealy
-    return new_profiles
-
-def rey_mag(p):
-
-    # Data Out
-    r = np.power(10, p.logR)
-    Temperature = np.power(10, p.logT) # [K]    
-    conv_len = p.mlt_mixing_length # [cm]
-    conv_vel = p.conv_vel # [cm/s]
-    
-    # Mag Reynolds
-    conductivity = 1e7 * Temperature**(3/2)
-    mag_diffusivity = c.inv_mu_0_cgs / conductivity
-    reynolds_mag =  conv_len * conv_vel / mag_diffusivity
-    
-    age = np.round(p.star_age /  1e6, 2)
-    return r, reynolds_mag, age
+from src.Utilities.profile_sorter import profile_sorter
+from src.Bfield.reynolds import rey_mag, dynamo_region
 #%%
-def dynamo_region(p, normalize = False,):
-    r, rey_mag_num, age = rey_mag(p)
-    regions = []
-    current_region = None
-    for i, rmn in enumerate(rey_mag_num):
-        if rmn > c.critical_rey_mag_num:
-            if current_region is None:
-                current_region = [i] # Make a new region
-            else:
-                current_region.append(i)
-                
-        # Finish this region
-        elif current_region is not None:
-            regions.append(current_region)
-            current_region = None
-            
-    # Save the last one
-    if current_region is not None:
-       regions.append(current_region)
-       
-    # Return the largest one
-    dyn_region_len = 0 # arbitrary
-    for i, region in enumerate(regions):
-        temp_len = len(region)
-        if temp_len > dyn_region_len:
-            dyn_region_idx = i
-            dyn_region_len = temp_len
-    if dyn_region_len > 0:
-        dynamo_region = regions[dyn_region_idx]
-    else: 
-        return [], [], age
-    
+def hori_met_hyd(p, normalize = False, rearth = False):
+    # Extract form MESA.
+    r = np.power(10, p.logR) # Rsol
     if normalize:
-        return r[dynamo_region] / r[0], rey_mag_num[dynamo_region], age
-    else:
-        return r[dynamo_region], rey_mag_num[dynamo_region], age
+        r *= 1/r[0]
+    if rearth:
+        r *= c.Rsol/c.Rearth
+    Temperature = np.power(10, p.logT) # [K]  
+    Pressure = np.power(10, p.logP) # erg / cm^3
+    conv_vel = p.conv_vel # cm/s
+    
 
-#%%
-
+    # Metallic hydrogen conditions
+    critical_T = 2_000 # [K]
+    bar_to_cgs = 1_000_000
+    critical_P = 2 * 1e6 * bar_to_cgs # 2 MBars
+    good_T = np.ma.MaskedArray(Temperature > critical_T)
+    good_P = np.ma.MaskedArray(Pressure > critical_P )
+    good_vel = np.ma.MaskedArray(conv_vel != 0)
+    
+    met_hyd_mask = np.multiply(good_T, good_P)
+    met_hyd_mask = np.multiply(met_hyd_mask, good_vel)
+    # Apply mask
+    dynamo_region = r[met_hyd_mask]
+    age = np.round(p.star_age /  1e6, 2)
+    return r,  met_hyd_mask, age, dynamo_region
+          
 class apothicarios:
     def __init__(self, name):
         self.name = name
         self.age = []
         self.r = []
-        self.reymag = []
-        self.rmax = []
-      
-    def __call__(self, age, r, raymag, rmax):
+        self.met_hyd = []
+        self.rdyn = []
+
+    def __call__(self, age, r_h, met_hyd_h, rdyn_h):
         self.age.append(age)
-        self.r.append(r)
-        self.reymag.append(raymag)
-        self.rmax.append(rmax)
+        self.r.append(r_h)
+        self.met_hyd.append(met_hyd_h)
+        self.rdyn.append(rdyn_h)
         
-def reynolds_doer(names, many = 16):
+def hori_doer(names, many = 8):
     apothikh = []
     for name in names:
         # Instanciate Holder Object
@@ -112,14 +75,13 @@ def reynolds_doer(names, many = 16):
         # Do the thing
         for i in indices:
             p = mr.MesaData(profiles[i])
-            r, reynolds_mag_number, age = dynamo_region(p, normalize = True)
-            hold(age, r, reynolds_mag_number, 0)
+            r, met_hyd, age, rdyn = hori_met_hyd(p, normalize = True)
+            hold(age, r, met_hyd, rdyn)
             
         # Keep em
         apothikh.append(hold)
     return apothikh
-
-        
+       
 def plotter(names, cols, labels, title):
     
     # Specify Palettes
@@ -133,19 +95,19 @@ def plotter(names, cols, labels, title):
         colors = [c.c91, c.c92, c.c93, c.c95, c.c96, c.c98, c.c99,]
 
     # Makes the calculations
-    planets = reynolds_doer(names) 
-
-    fig, axs = plt.subplots(4,4, tight_layout = True, sharex = True,
+    planets = hori_doer(names) 
+    fig, axs = plt.subplots(4,2, tight_layout = True, sharex = True,
                            figsize = (8, 6))
-    
     custom_lines = []
     i = 0
     for ax in axs.reshape(-1):
         plot_age = 0
+        j = 1
         for planet, color, label in zip(planets, colors, labels):
-            ax.plot(planet.r[i], planet.reymag[i], color = color)
+            ax.plot(planet.r[i], planet.met_hyd[i]*j, color = color)
+            j += 1
             # ax.axvline(planet.rmax[i], color = 'k', linestyle = 'dashed')
-            ax.set_yscale('log')
+            # ax.set_yscale('log')
             plot_age += planet.age[i]
             
             # Legend
@@ -153,13 +115,13 @@ def plotter(names, cols, labels, title):
                 custom_lines.append( Line2D([0], [0], color = color, 
                                             label = label))
         # Critical Reymag
-        ax.axhline(50, linestyle = 'dashed', c = 'k')
+        # ax.axhline(50, linestyle = 'dashed', c = 'k')
         
         # Avg age
         plot_age /= len(planets)
         plot_age = np.round(plot_age, decimals = 0)
         ax.set_title(r"Age $\sim$" + str(plot_age) + ' Myrs')
-        ax.set_xlim(0.8, 1.1)
+        # ax.set_xlim(0.8, 1.01)
         # Change profile
         i += 1
         
@@ -199,7 +161,8 @@ def plotter(names, cols, labels, title):
         fig.legend(custom_lines, labels,
                 fontsize =  14, ncols = 5, alignment = 'center', # Lawful Neutral
                 bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
-#%%
+    
+#%%    
 kind = 'jupenv_zero'
 if __name__ == '__main__':
     if kind == 'jupenv_zero':
@@ -212,16 +175,15 @@ if __name__ == '__main__':
         #name9 = 'jup3_e98_zero'
         names = [name3, name4, name5, name6, name7]#, name4, name9]
         labels = ['85', '90', '92', '94', '96',]#, '95', '98']
-        plotter(names, 4, labels, 'Increasingly Puffier Jupiters')
-    if kind == 'nepenv':
-        name1 = 'nep_1'
-        name2 = 'nep_2'
-        name3 = 'nep_3'
-        name4 = 'nep_4'
-        name5 = 'nep_5'
-        name6 = 'nep_6'
-        names = [name1, name2, name3, name4, name5, name6]
-        labels = ['10', '20', '30', '40', '50', '60']
-        plotter(names, 2, labels)#, 'Neptunes with Diff. Envelopes')
-    
-    
+        plotter(names, 4, labels, 'Jupiter with Diff. Envelopes')
+    if kind == 'nepenv_zero':
+        name1 = 'nep_e1_zero'
+        name2 = 'nep_e3_zero_7s'
+        name3 = 'nep_e4_zero_7s'
+        name4 = 'nep_e5_zero_7s'
+        name5 = 'nep_e6_zero_7s'
+        name6 = 'nep_e8_zero_7s'
+        name7 = 'nep_e10_zero_7s'
+        names = [name1, name2, name3, name4, name5, name6, name7]
+        labels = ['1', '3', '4', '5', '6', '8', '10']
+        plotter(names, 4, labels, 'Neptunes with Diff. Envelopes')
