@@ -90,6 +90,21 @@ class apothicarios:
         self.Bdip.append(Bdip_h)
         self.F.append(F_h)
         
+def hardB_doer_single(profile):
+    p = mr.MesaData(profile)
+    r = np.power(10, p.logR)
+    R_dynamo_active, _, _ = dynamo_region(p)
+    try:
+        Rdyn_end = R_dynamo_active[0] # it's the wrong way round
+        # R_dynamo_active *= c.Rsol / c.Rearth
+    except IndexError:
+        return -100, -100
+    B_dyn, F = hardB(p, R_dynamo_active)
+    # Get Dipole
+    dynamo = (r[0] - Rdyn_end) / r[0]
+    B_dip =  B_dyn * np.power( 1 - dynamo, 3) / np.sqrt(2)
+    return B_dyn, B_dip
+
 def hardB_doer(names):
     # Count and generate profile lists
     apothikh = []
@@ -145,47 +160,47 @@ def plotter(names, cols, labels, title, bigfirst = False):
 
     # Makes the calculations
     planets = hardB_doer(names) 
-    fig, axs = plt.subplots(1,3, tight_layout = True, sharex = True,
-                           figsize = (8,4))
+    fig, axs = plt.subplots(1,2, tight_layout = True, sharex = True,
+                           figsize = (5,4))
     custom_lines = []
     for planet, color, i in zip(planets, colors, range(len(planets))):
         if i == 0 and bigfirst:
-            axs[0].plot(planet.age, planet.F, color = color, lw=10, zorder = 2)
-            axs[1].plot(planet.age, planet.Bdyn, color = color, lw=10, zorder = 2)
-            axs[2].plot(planet.age, planet.Bdip, color = color, lw=10, zorder = 2)
+            #axs[0].plot(planet.age, planet.F, color = color, lw=10, zorder = 2)
+            axs[0].plot(planet.age, planet.Bdyn, color = color, lw=10, zorder = 2)
+            axs[1].plot(planet.age, planet.Bdip, color = color, lw=10, zorder = 2)
             
         if i == 1 and bigfirst:
-            axs[0].plot(planet.age, planet.F, color = color, lw=5, zorder = 2)
-            axs[1].plot(planet.age, planet.Bdyn, color = color, lw=5, zorder = 2)
-            axs[2].plot(planet.age, planet.Bdip, color = color, lw=5, zorder = 2)
+            #axs[0].plot(planet.age, planet.F, color = color, lw=5, zorder = 2)
+            axs[0].plot(planet.age, planet.Bdyn, color = color, lw=5, zorder = 2)
+            axs[1].plot(planet.age, planet.Bdip, color = color, lw=5, zorder = 2)
         
-        axs[0].plot(planet.age, planet.F, color = color)
-        axs[1].plot(planet.age, planet.Bdyn, color = color)
-        axs[2].plot(planet.age, planet.Bdip, color = color)
+        #axs[0].plot(planet.age, planet.F, color = color)
+        axs[0].plot(planet.age, planet.Bdyn, color = color)
+        axs[1].plot(planet.age, planet.Bdip, color = color)
     
         # Legend
         custom_lines.append( Line2D([0], [0], color = colors[i], 
                                     label = labels[i]))
         
     # Make nice
-    axs[0].set_ylabel('Efficiency Factor', fontsize = 14)
-    axs[1].set_ylabel('Dynamo [G]', fontsize = 14)
-    axs[2].set_ylabel('Dipole [G]', fontsize = 14)
+    #axs[0].set_ylabel('Efficiency Factor', fontsize = 14)
+    axs[0].set_ylabel('Dynamo [G]', fontsize = 14)
+    axs[1].set_ylabel('Dipole [G]', fontsize = 14)
     
+    #axs[0].grid()
     axs[0].grid()
     axs[1].grid()
-    axs[2].grid()
         
-    axs[0].set_xlim(500, 11_000)
-    axs[0].set_yscale('log')
-    if 'jup' in names[0]:
+    axs[1].set_xlim(500, 10_000)
+    #axs[0].set_yscale('log')
+    if 'm317' in names[0]:
         #axs[0].set_ylim(1_000, 6_000)
+        axs[0].set_ylim(50, 350)
         axs[1].set_ylim(50, 350)
-        axs[2].set_ylim(50, 350)
-    elif 'nep' in names[0]:
-        axs[0].set_ylim(1E-12,1E1)
+    elif 'm17' in names[0]:
+        # axs[0].set_ylim(1E-12,1E1)
+        axs[0].set_ylim(0, 25)
         axs[1].set_ylim(0, 25)
-        axs[2].set_ylim(0, 25)
     
     #axs[0].set_yscale('log')
     #axs[1].set_yscale('log')
@@ -208,21 +223,21 @@ def plotter(names, cols, labels, title, bigfirst = False):
         
     fig.legend(custom_lines, labels,
             fontsize =  9, ncols = len(planets), alignment = 'left', # Lawful Neutral
-            bbox_to_anchor=(0.85, -0.03), bbox_transform = fig.transFigure,)
+            bbox_to_anchor=(0.86, -0.03), bbox_transform = fig.transFigure,)
 #%%    
-kind = 'jup-entropy'
+kind = 'jupenv_zero'
 if __name__ == '__main__':
     if kind == 'jupenv_zero':
-        name3 = 'jup_e85_zero'
-        name4 = 'jup_e90_zero'
-        name5 = 'jup_e92_zero'
-        name6 = 'jup_e94_zero'
-        name7 = 'jup_e96_zero'
+        name3 = 'm317_e85_zero_a01_s8'
+        name4 = 'm317_e88_zero_a01_s8'
+        name5 = 'm317_e91_zero_a01_s8'
+        name6 = 'm317_e94_zero_a01_s8'
+        name7 = 'm317_e97_zero_a01_s8'
         #name8 = 'jup_e97_zero'
         #name9 = 'jup3_e98_zero'
         names = [name3, name4, name5, name6, name7]#, name4, name9]
         labels = ['85', '90', '92', '94', '96',]#, '95', '98']
-        plotter(names, 4, labels, 'Jupiter with Diff. Envelopes')
+        plotter(names, 4, labels, r'Jupiter $317 M_\oplus$, $\alpha$=0.1 AU')
     if kind == 'nepenv_zero':
         name1 = 'nep_e1_zero'
         name2 = 'nep_e3_zero_7s'
