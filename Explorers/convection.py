@@ -15,6 +15,7 @@ import src.prelude as c
 from src.Bfield.reynolds import rey_mag, dynamo_region
 from src.Utilities.profile_sorter import profile_sorter
 from src.Bfield.hardB import convective_flux
+from src.Bfield.hori import hori_doer
 
 def q_explore(p, Rdyns):
     r = np.power(10, p.logR) * c.Rsol / c.Rearth
@@ -89,6 +90,7 @@ def doer(names):
 def plotter(names, cols, title):
     # Makes the calculations
     planets = doer(names) 
+    hori = hori_doer(names, 100)[0]
 
     fig, ax = plt.subplots(1,1, tight_layout = True, sharex = True,
                            figsize = (4,4))
@@ -96,11 +98,13 @@ def plotter(names, cols, title):
     custom_lines = []
     for planet in planets:
         #axs[0].plot(planet.age, planet.q0, color = 'k')
-        ax.plot(planet.age, planet.dyn_start, c.cyan)
-        ax.plot(planet.age, planet.dyn_end, c.kroki,)
+        ax.plot(planet.age, planet.dyn_start, 'k')
+        ax.plot(planet.age, planet.dyn_end, 'k', linestyle = ':')
+        
+        #ax.plot(hori.age)
         
         ax2=ax.twinx()
-        ax2.plot(planet.age, planet.reynolds, color = c.c97)
+        # ax2.plot(planet.age, planet.reynolds, color = c.c97)
         ax2.set_ylabel(r'Reynolds Mag', fontsize = 14 , rotation = 270, labelpad=16)
         
     # import Mors as mors 
@@ -139,7 +143,8 @@ def plotter(names, cols, title):
             fontsize =  9, ncols = 3, alignment = 'center', # Lawful Neutral
             bbox_to_anchor=(0.87, -0.04), bbox_transform = fig.transFigure,)  
 #%%    
-kind = 'jup_autoS'
+kind = 'saturn90'
+both = True # hori or reynolds
 if __name__ == '__main__':
     if kind == 'jup':
         name = 'jup_e94_zero'
@@ -165,4 +170,15 @@ if __name__ == '__main__':
         name = 'nep_e1_zero'
         label = 'Jupiter'
         plotter([name], 1, r'Neptune $M_\oplus$ 17, f$_0$ = 1 $\%$, a = 0.1 AU, Zero',)
-    
+    if kind == 'saturn95':
+        name = 'm95_e95_zero_a01_s8'
+        label = 'saturn'
+        plotter([name], 1, r'Saturn $M_\oplus$ 95, f$_0$ = 95 $\%$, a = 0.1 AU, Zero',)
+    if kind == 'saturn90':
+        name = 'm95_e90_zero_a01_s8'
+        label = 'saturn'
+        plotter([name], 1, r'Saturn $M_\oplus$ 95, f$_0$ = 90 $\%$, a = 0.1 AU, Zero',)
+    if kind == 'saturn85':
+        name = 'm95_e85_zero_a01_s8'
+        label = 'saturn'
+        plotter([name], 1, r'Saturn $M_\oplus$ 85, f$_0$ = 90 $\%$, a = 0.1 AU, Zero',)

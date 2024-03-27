@@ -14,7 +14,7 @@ import os
 # 
 import src.prelude as c
 from src.Bfield.reynolds import rey_mag, profile_sorter
-
+from src.Bfield.hori import hori_doer
 
 class apothicarios:
     def __init__(self, name):
@@ -57,7 +57,6 @@ def dynsize_doer(names):
         # Keep em
         apothikh.append(hold)
         print('---')
-
     return apothikh
 
         
@@ -74,6 +73,8 @@ def plotter(names, cols, labels, title):
     
     # Makes the calculations
     planets = dynsize_doer(names) 
+    hori = hori_doer(names, 100)[0]
+
     fig, axs = plt.subplots(1,2, tight_layout = True, sharex = True,
                            figsize = (7,4))
     custom_lines = []
@@ -95,8 +96,6 @@ def plotter(names, cols, labels, title):
     fig.suptitle(title,  fontsize = 15, y = 0.98)
     fig.text(0.47, -0.02, r' Age [Myr]', 
               fontsize = 15, transform = fig.transFigure)
-
-
     fig.legend(custom_lines, labels,
             fontsize =  9, ncols = len(planets), alignment = 'center', # Lawful Neutral
             bbox_to_anchor=(0.95, -0.03), bbox_transform = fig.transFigure,)

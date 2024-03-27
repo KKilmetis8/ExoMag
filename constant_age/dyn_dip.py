@@ -97,7 +97,7 @@ im2 = ax[1].scatter(neptunes.radii, neptunes.Bdip, ec = 'k', zorder = 3,
                  vmin = 1, vmax = 15, c = neptunes.envs, cmap = 'Blues')
 
 # Limits and scale
-ax[0].set_ylim(0,160)
+# ax[0].set_ylim(0,160)
 ax[0].set_xlim(2,13)
 #ax[0].set_xscale('log')
 

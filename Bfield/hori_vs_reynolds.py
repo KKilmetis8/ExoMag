@@ -57,6 +57,7 @@ def plotter(names, title):
                 to_plot_big[j][i] = np.array([255,255,255]) / 255
 
     fig, ax = plt.subplots()
+    print(to_plot_big.shape)
     ax.pcolormesh(plot_age, np.flip(hori.r[10]), to_plot_big)
 
     # Minor ticks
@@ -92,4 +93,8 @@ if __name__ == '__main__':
         name6 = 'jup_e94_zero'
         names = [name6,]
         plotter(names, r'Jupiters 317 $M_\oplus$, Env 94$\%$, 0.1 AU')
+    if kind == 'saturn':
+        name6 = 'm95_e95_zero_a01_s8'
+        names = [name6,]
+        plotter(names, r'Saturn 95 $M_\oplus$, Env 95$\%$, Zero Evap, 0.1 AU, S: 8 kb/bar')
 
