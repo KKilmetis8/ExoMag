@@ -83,17 +83,19 @@ class apothicarios:
         self.Bdyn = []
         self.Bdip = []
         self.F = []
+        self.radius = []
 
-    def __call__(self, age_h, Bdyn_h, Bdip_h, F_h):
+    def __call__(self, age_h, Bdyn_h, Bdip_h, F_h, radius_h):
         self.age.append(age_h)
         self.Bdyn.append(Bdyn_h)
         self.Bdip.append(Bdip_h)
         self.F.append(F_h)
+        self.radius.append(radius_h)
         
 def hardB_doer_single(profile):
     p = mr.MesaData(profile)
     r = np.power(10, p.logR)
-    R_dynamo_active, _, _ = dynamo_region(p)
+    R_dynamo_active, _, age = dynamo_region(p)
     try:
         Rdyn_end = R_dynamo_active[0] # it's the wrong way round
         # R_dynamo_active *= c.Rsol / c.Rearth
@@ -103,7 +105,7 @@ def hardB_doer_single(profile):
     # Get Dipole
     dynamo = (r[0] - Rdyn_end) / r[0]
     B_dip =  B_dyn * np.power( 1 - dynamo, 3) / np.sqrt(2)
-    return B_dyn, B_dip
+    return B_dyn, B_dip, age
 
 def hardB_doer(names):
     # Count and generate profile lists
@@ -131,14 +133,14 @@ def hardB_doer(names):
                 # R_dynamo_active *= c.Rsol / c.Rearth
             except IndexError:
                 # Save
-                hold(age, hold.Bdyn[-1], hold.Bdip[-1], 0)
+                hold(age, hold.Bdyn[-1], hold.Bdip[-1], 0, 0)
                 continue  
             B_dyn, F = hardB(p, R_dynamo_active)
             # Get Dipole
             dynamo = (r[0] - Rdyn_end) / r[0]
             B_dip =  B_dyn * np.power( 1 - dynamo, 3) / np.sqrt(2)
             # Save
-            hold(age, B_dyn, B_dip, F)
+            hold(age, B_dyn, B_dip, F, r[0])
         apothikh.append(hold)
     return apothikh
     
@@ -199,14 +201,14 @@ def plotter(names, cols, labels, title, bigfirst = False):
         axs[1].set_ylim(50, 350)
     elif 'm17' in names[0]:
         # axs[0].set_ylim(1E-12,1E1)
-        axs[0].set_ylim(0, 25)
-        axs[1].set_ylim(0, 25)
+        axs[0].set_ylim(0, 40)
+        axs[1].set_ylim(0, 40)
     
     #axs[0].set_yscale('log')
     #axs[1].set_yscale('log')
 
-    fig.suptitle(title, 
-                  fontsize = 18, y = 0.98)
+    # fig.suptitle(title, 
+    #               fontsize = 18, y = 0.98)
     fig.text(0.47, -0.02, r' Age [Myr]', 
               fontsize = 15, transform = fig.transFigure)
 
@@ -223,10 +225,35 @@ def plotter(names, cols, labels, title, bigfirst = False):
         
     fig.legend(custom_lines, labels,
             fontsize =  9, ncols = len(planets), alignment = 'left', # Lawful Neutral
-            bbox_to_anchor=(0.86, -0.03), bbox_transform = fig.transFigure,)
+            bbox_to_anchor=(0.94, -0.03), bbox_transform = fig.transFigure,)
 #%%    
-kind = 'jupenv_zero'
+kind = 'nepenv_zero'
 if __name__ == '__main__':
+    if kind == 'jup-kai-nep':
+        fenvs_jup = ['88', '9', '92', '94', '96']
+        fenvs_nep = ['02', '04','06', '08', '1']
+        labels_jup = ['88%', '2%', '90%', '4%', '92%', '6%' '94%', '8%', '96%',
+                      '98%']
+        
+        names = []
+        for fj,fn in zip(fenvs_jup, fenvs_nep):
+            name_j = f'm317_env{fj}_zero_a01_s8'
+            name_n = f'm317_env{fn}_zero_a01_s8'
+            names.append(name_j)
+            names.append(name_n)
+            
+            
+    if kind == 'jupenv_zero_orb':
+        name3 = 'm317_env94_zero_a01_s8'
+        name4 = 'm317_e88_zero_a01_s8'
+        name5 = 'm317_e91_zero_a01_s8'
+        name6 = 'm317_e94_zero_a01_s8'
+        name7 = 'm317_e97_zero_a01_s8'
+        #name8 = 'jup_e97_zero'
+        #name9 = 'jup3_e98_zero'
+        names = [name3, name4, name5, name6, name7]#, name4, name9]
+        labels = ['85', '90', '92', '94', '96',]#, '95', '98']
+        plotter(names, 4, labels, r'Jupiter $317 M_\oplus$, $\alpha$=0.1 AU')
     if kind == 'jupenv_zero':
         name3 = 'm317_e85_zero_a01_s8'
         name4 = 'm317_e88_zero_a01_s8'
@@ -239,30 +266,15 @@ if __name__ == '__main__':
         labels = ['85', '90', '92', '94', '96',]#, '95', '98']
         plotter(names, 4, labels, r'Jupiter $317 M_\oplus$, $\alpha$=0.1 AU')
     if kind == 'nepenv_zero':
-        name1 = 'nep_e1_zero'
-        name2 = 'nep_e3_zero_7s'
-        name3 = 'nep_e4_zero_7s'
-        name4 = 'nep_e5_zero_7s'
-        name5 = 'nep_e6_zero_7s'
-        name6 = 'nep_e8_zero_7s'
-        name7 = 'nep_e10_zero_7s'
-        names = [name1, name2, name3, name4, name5, name6, name7]
-        labels = ['1', '3', '4', '5', '6', '8', '10']
+        name1 = 'm17_env0.02_zero_a0.1_s8'
+        name2 = 'm17_env0.04_zero_a0.1_s8'
+        name3 = 'm17_env0.06_zero_a0.1_s8'
+        name4 = 'm17_env0.08_zero_a0.1_s8'
+        name5 = 'm17_env0.1_zero_a0.1_s8'
+        name6 = 'm17_env0.12_zero_a0.1_s8'
+        names = [name1, name2, name3, name4, name5, name6]
+        labels = ['2', '4', '6', '8', '10', '12',]
         plotter(names, 4, labels, 'Neptunes with Diff. Envelopes')
-    if kind == 'nep_entropy_check':
-        name1 = 'nep_e4_zero_autoS'
-        name2 = 'nep_e4_zero_7s'
-        name3 = 'nep_e4_zero_8s'
-        labels = ['MESA', '7 kb/bar.', '8 kb/bar.']
-        names = [name1, name2, name3] #name3, name4, name5, name6]
-        plotter(names, 5, labels, 
-                '4\% Env, Neptunes with diff. entropy perscriptions', True)
-    if kind == 'jup94_entropy_check':
-        name1 = 'jup_e94_zero_autoS'
-        name2 = 'jup_e94_zero'
-        labels = ['MESA', '8 kb/baryon',]
-        names = [name1, name2,] #name3, name4, name5, name6]
-        plotter(names, 1, labels, '94\% Env, Jupiters with diff. entropy perscriptions')
 
     if kind == 'se5env':
         name1 = 'se58'
@@ -275,50 +287,3 @@ if __name__ == '__main__':
         names = [name1, name2, name3, name4, name5, name6, name7]
         labels = ['1', '2', '6', '12', '18', '24', '30']
         plotter(names, 3, labels, '5xEarth with Diff. Envelopes')
-    if kind == 'se5envEL':
-        name1 = 'se5_e001_a03_EL'
-        name2 = 'se5_e002_a03_EL'
-        name3 = 'se5_e005_a03_EL'
-        name4 = 'se5_e01_a03_EL'
-        name5 = 'se5_e013_a03_EL'
-        name6 = 'se5_e017_a03_EL'
-        names = [name1, name2, name3, name4, name5, name6]
-        labels = ['1', '2', '5', '10', '13', '17',]
-        plotter(names, 3, labels, '5xEarth with Diff. Envelopes')
-    if kind == 'jup-sep_s7':
-        name1 = 'jup_e94_zero_a001_s7'
-        name2 = 'jup_e94_zero_a01_s7'
-        name3 = 'jup_e94_zero_a04_s7'
-        name4 = 'jup_e94_zero_a1_s7'
-        name5 = 'jup_e94_zero_a2_s7'
-        name6 = 'jup_e94_zero_a52_s7'
-        names = [name1, name2, name3, name4, name5, name6]
-        labels = ['0.01', '0.1', '0.4', '1', '2', '5.2',]
-        plotter(names, 4, labels, 'Jups Seperation Experiment | S:7 kb/bar')
-    if kind == 'jup-sep_s8':
-        name1 = 'jup_e94_zero_a001_s8'
-        name2 = 'jup_e94_zero_a01_s8'
-        name3 = 'jup_e94_zero_a04_s8'
-        name4 = 'jup_e94_zero_a1_s8'
-        name5 = 'jup_e94_zero_a2_s8'
-        name6 = 'jup_e94_zero_a52_s8'
-        names = [name1, name2, name3, name4, name5, name6]
-        labels = ['0.01', '0.1', '0.4', '1', '2', '5.2',]
-        plotter(names, 4, labels, 'Jups Seperation Experiment | S:8 kb/bar')
-    if kind == 'jup-sep_s9':
-        name2 = 'jup_e94_zero_a01_s9'
-        name3 = 'jup_e94_zero_a04_s9'
-        name4 = 'jup_e94_zero_a1_s9'
-        name5 = 'jup_e94_zero_a2_s9'
-        name6 = 'jup_e94_zero_a52_s9'
-        names = [name2, name3, name4, name5, name6]
-        labels = ['0.1', '0.4', '1', '2', '5.2',]
-        plotter(names, 4, labels, 'Jups Seperation Experiment | S:9 kb/bar')
-    if kind == 'jup-entropy':
-        name2 = 'jup_e94_zero_a01_s7'
-        name3 = 'jup_e94_zero_a01_s8'
-        name4 = 'jup_e94_zero_a01_s9'
-        name5 = 'jup_e94_zero_autoS'
-        names = [name2, name3, name4, name5]
-        labels = ['7', '8', '9', 'auto']
-        plotter(names,2, labels, r'Jup 317 $M_\oplus$, Env. 94$\%$, a=0.1 AU ')

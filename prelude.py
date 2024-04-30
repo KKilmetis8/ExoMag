@@ -16,12 +16,19 @@ Mjup = 1.8986e30 # [g]
 Mjup_in_sol = Mjup / Msol
 Mearth = 5.9722e27 # [g]
 Lsol = 3.826e33 # [erg/s]
+ly = 9.46e17 # [cm]
+kms_to_cms = 1e5 # [cm]
+jy = 1e23 # erg s-1 cm-2 Hz-1
+AU = 1.496e-13 # [cm]
 
 # Physics
 c = 2.99792458e10 #[cm/s]
+G = 6.674e-8 # [cgs]
 h = 6.62607015e-27 #[gcm^2/s]
 Kb = 1.380649e-16 #[gcm^2/s^2K]
 sigma = 5.670e-5 # [cgs]
+ideal_gas = 8.3145e7 # [cgs]
+mu = 0.602 # solar
 sqrt2 = np.sqrt(2)
 
 # Reynolds

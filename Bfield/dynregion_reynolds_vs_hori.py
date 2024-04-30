@@ -65,7 +65,7 @@ def hardB_doer(names):
                 hori_dyn_end = hori_dyn[0] # it's the wrong way round
             except IndexError:
                 # Save
-                hold(age, 0, 0, 0, 0)
+                hold(age, 0, 0, 0, 0, 0)
                 continue  
 
             # Get Dipole
@@ -94,7 +94,7 @@ def plotter(names, cols, title):
     # Makes the calculations
     planets = hardB_doer(names) 
     fig, axs = plt.subplots(1,1, tight_layout = True, sharex = True,
-                           figsize = (4,4))
+                           figsize = (3,3))
     custom_lines = []
     for planet, i in zip(planets, range(len(planets))):
         axs.plot(planet.age, planet.rey_start, c = 'k', lw = 3)
@@ -103,34 +103,39 @@ def plotter(names, cols, title):
         axs.plot(planet.age, planet.hori_end, c = 'r', linestyle = ':')
         
     # Make nice
-    axs.set_ylabel('Radial Distance from centre [R$_J$]', fontsize = 14)
+    # core_radius = 3.12 * c.Rearth/c.Rjup # for m95
+    # axs.fill_between( x= planet.age, y1= core_radius, 
+    #                  color= "k", alpha= 0.2)
+    axs.set_ylabel('Radial Distance from centre [R$_J$]', fontsize = 11)
     axs.grid() 
+    axs.set_ylim(0,1.3)
     #axs.set_xlim(500, 11_000)
     axs.set_xscale('log')
     axs.plot(planet.age, planet.r, c = 'b', linestyle = '-.')
-    fig.suptitle(title, fontsize = 18, y = 0.98)
+    # fig.suptitle(title, fontsize = 13, y = 0.98, wrap = True)
     fig.text(0.47, -0.02, r' Age [Myr]', 
-             fontsize = 15, transform = fig.transFigure)
+             fontsize = 11, transform = fig.transFigure)
     
     # Legend
-    custom_lines = [ Line2D([0], [0], color = 'k', linewidth = 3),
-                     Line2D([0], [0], color = 'r', linewidth = 3,),
-                     ]
-    labels = ['Reynolds', 'Met Hyd']
-    if len(planets) == 2:
-        box_x = 0.74
-    elif len(planets) == 3:
-        box_x = 0.87
-    elif len(planets) == 6:
-        box_x = 0.83
-    elif len(planets) == 8:
-        box_x = 0.73
-    else:
-        box_x = 0.97
+    # custom_lines = [ Line2D([0], [0], color = 'k', linewidth = 3),
+    #                  Line2D([0], [0], color = 'r', linewidth = 3,),
+    #                  ]
+    
+    # labels = ['Reynolds', 'Met Hyd']
+    # if len(planets) == 2:
+    #     box_x = 0.74
+    # elif len(planets) == 3:
+    #     box_x = 0.87
+    # elif len(planets) == 6:
+    #     box_x = 0.83
+    # elif len(planets) == 8:
+    #     box_x = 0.73
+    # else:
+    #     box_x = 0.97
         
-    fig.legend(custom_lines, labels,
-            fontsize =  10, ncols = 1, alignment = 'left', # Lawful Neutral
-            bbox_to_anchor=(1.27, 0.53), bbox_transform = fig.transFigure,)
+    # fig.legend(custom_lines, labels,
+    #         fontsize =  7, ncols = 1, alignment = 'left', # Lawful Neutral
+    #         bbox_to_anchor=(0.95, 0.47), bbox_transform = fig.transFigure,)
     return planets
 #%%    
 kind = 'saturn'
@@ -140,6 +145,10 @@ if __name__ == '__main__':
         names = [name]
         ps = plotter(names, 1, r'Jupiter 317 $M_\oplus$, Env 94$\%$, 0.1 AU')
     if kind == 'saturn':
-        name6 = 'm95_e95_zero_a01_s8'
+        name6 = 'm95_env0.9_zero_a0.1_s8'
         names = [name6,]
-        plotter(names, 1, r'Saturn 95 $M_\oplus$, Env 95$\%$, Zero Evap, 0.1 AU, S: 8 kb/bar')
+        plotter(names, 1, r'Saturn 95 $M_\oplus$, Env 95$\%$'+ '\n Zero Evap, 0.1 AU, S: 8 kb/bar')
+    if kind == 'jupiter':
+        name6 = 'm317_e94_zero_a01_s8'
+        names = [name6,]
+        plotter(names, 1, r'notitle')
