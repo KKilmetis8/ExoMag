@@ -4,16 +4,9 @@
 Created on Wed Mar 27 20:21:33 2024
 
 @author: konstantinos
-"""
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+Compares the size of dynamo regions that result from the reynolds' number criterion and the metallic hydrogen criterion.
 """
-Created on Sun Mar 17 12:47:45 2024
-
-@author: konstantinos
-"""
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -60,6 +53,9 @@ def hardB_doer(names):
             r = np.power(10, p.logR) 
             rey_dyn, _, age = dynamo_region(p)
             _, _, _, hori_dyn = hori_met_hyd(p)
+            print(10**p.logT[-20])
+            print(p.conv_vel[-20])
+            print('---')
             try:
                 rey_dyn_end = rey_dyn[0] * c.Rsol / c.Rjup # it's the wrong way round
                 hori_dyn_end = hori_dyn[0] # it's the wrong way round
@@ -138,7 +134,7 @@ def plotter(names, cols, title):
     #         bbox_to_anchor=(0.95, 0.47), bbox_transform = fig.transFigure,)
     return planets
 #%%    
-kind = 'saturn'
+kind = 'jupiter'
 if __name__ == '__main__':
     if kind == 'jup_e94_zero':
         name = 'jup_e94_zero'       
@@ -149,6 +145,6 @@ if __name__ == '__main__':
         names = [name6,]
         plotter(names, 1, r'Saturn 95 $M_\oplus$, Env 95$\%$'+ '\n Zero Evap, 0.1 AU, S: 8 kb/bar')
     if kind == 'jupiter':
-        name6 = 'm317_e94_zero_a01_s8'
+        name6 = 'm317_env0.94_zero_a0.1_s8'
         names = [name6,]
         plotter(names, 1, r'notitle')

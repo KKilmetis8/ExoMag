@@ -4,6 +4,8 @@
 Created on Sat Mar 16 19:13:08 2024
 
 @author: konstantinos
+
+Uses the metallic hydrogen criterion first found Hori 2020 for the dynamo criterion
 """
 
 import numpy as np
@@ -163,27 +165,12 @@ def plotter(names, cols, labels, title):
                 bbox_to_anchor=(box_x, -0.03), bbox_transform = fig.transFigure,)
     
 #%%    
-kind = 'jupenv_zero'
+kind = 'nep'
 if __name__ == '__main__':
-    if kind == 'jupenv_zero':
-        name3 = 'jup_e85_zero'
-        name4 = 'jup_e90_zero'
-        name5 = 'jup_e92_zero'
-        name6 = 'jup_e94_zero'
-        name7 = 'jup_e96_zero'
-        #name8 = 'jup_e97_zero'
-        #name9 = 'jup3_e98_zero'
-        names = [name3, name4, name5, name6, name7]#, name4, name9]
-        labels = ['85', '90', '92', '94', '96',]#, '95', '98']
-        plotter(names, 4, labels, 'Jupiter with Diff. Envelopes')
-    if kind == 'nepenv_zero':
-        name1 = 'nep_e1_zero'
-        name2 = 'nep_e3_zero_7s'
-        name3 = 'nep_e4_zero_7s'
-        name4 = 'nep_e5_zero_7s'
-        name5 = 'nep_e6_zero_7s'
-        name6 = 'nep_e8_zero_7s'
-        name7 = 'nep_e10_zero_7s'
-        names = [name1, name2, name3, name4, name5, name6, name7]
-        labels = ['1', '3', '4', '5', '6', '8', '10']
-        plotter(names, 4, labels, 'Neptunes with Diff. Envelopes')
+    if kind == 'nep':
+        name3 = 'm17_env0.06_zero_a0.1_s8'
+
+        names = [name3,]
+        labels = ['85',]
+        plotter(names, 4, labels, 'nep ')
+

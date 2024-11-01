@@ -4,6 +4,8 @@
 Created on Thu Jan 18 20:59:44 2024
 
 @author: konstantinos
+
+Plot colors, constants that are not astropy and make everything slow, that sort of thing.
 """
 import numpy as np
 
@@ -19,7 +21,7 @@ Lsol = 3.826e33 # [erg/s]
 ly = 9.46e17 # [cm]
 kms_to_cms = 1e5 # [cm]
 jy = 1e23 # erg s-1 cm-2 Hz-1
-AU = 1.496e-13 # [cm]
+AU = 1.496e13 # [cm]
 
 # Physics
 c = 2.99792458e10 #[cm/s]

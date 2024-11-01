@@ -4,6 +4,8 @@
 Created on Wed Feb 28 17:33:46 2024
 
 @author: konstantinos
+
+Compares the reynolds criterion for a dynamo region with the the Schwarzschild criterion for convection. I.e. is any convection enough for a dynamo to survive? Spoilers, no but it's rather close. 
 """
 
 import numpy as np

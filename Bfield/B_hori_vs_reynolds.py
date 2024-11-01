@@ -215,12 +215,16 @@ def plotter(names, cols, title):
             bbox_to_anchor=(0.67, -0.03), bbox_transform = fig.transFigure,)
     return planets
 #%%    
-kind = 'saturn'
+kind = 'nep'
 if __name__ == '__main__':
-    if kind == 'jup_e94_zero':
-        name = 'jup_e94_zero'       
+    if kind == 'jup':
+        name = 'm317_env0.94_zero_a0.1_s8'       
         names = [name]
         ps = plotter(names, 1, r'Jupiter 317 $M_\oplus$, Env 94$\%$, 0.1 AU')
+    if kind == 'nep':
+        name = 'm17_env0.06_zero_a0.1_s8'       
+        names = [name]
+        ps = plotter(names, 1, r'Neptune 17 $M_\oplus$, Env 6$\%$, 0.1 AU')
     if kind == 'saturn':
         name6 = 'm95_e95_zero_a01_s8'
         names = [name6,]

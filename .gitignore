@@ -1,0 +1,13 @@
+radio/
+bakery-adjacent/
+Explorers/
+constant_age/
+__pycache__/
+.obsidian/
+Utilities/andrew_table.py
+Utilities/planet_grids.py
+Bfield/Bcompare.py
+Bfield/mediumB.py
+Bfields/__pycache__
+Utilities/__pycache__
+Figmakers/__pycache__

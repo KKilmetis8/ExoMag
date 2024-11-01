@@ -4,6 +4,8 @@
 Created on Thu Jan 18 20:49:45 2024
 
 @author: konstantinos
+
+Uses the scaled christensen relations + the reynolds' criterion to get the magnetic field.
 """
 import numpy as np
 import matplotlib.pyplot as plt
