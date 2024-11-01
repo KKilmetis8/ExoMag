@@ -10,7 +10,7 @@ The goal of this project is to use the [Christensen](https://ui.adsabs.harvard.e
 ### Workflow
 Follow the inlist instructions to generate `MESA` files.  Consult `The_MESA_log.pdf` for detailed instructions regarding installation and working with the inlists.
 
-After getting them to run, edit `run_star_extras_evol_Mors0.f` with the contents of `Utilities/customsaving.f`. This is necessary in order to prompt `MESA` to adequately sample every period in the planetary lifetime.
+After getting them to run, edit `run_star_extras_evol_Mors0.f` with the contents of `Utilities/customsaving.f`. This is necessary in order to prompt `MESA` to adequately sample every period in the planetary lifetime.  To get all the neccecery outputs from `MESA`, look at `Utilities/profile_columns_backup.f`.
 
 The code expects to find the `MESA` output in folder named `data`, in the same directory as the repository, like so:
 

@@ -4,6 +4,8 @@
 Created on Sun Mar 17 14:14:50 2024
 
 @author: konstantinos
+
+This opens every profile and saves the desired age to a seperate folder. needed for the big plots
 """
 import numpy as np
 import mesa_reader as mr
