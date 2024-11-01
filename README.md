@@ -14,6 +14,8 @@ After getting them to run, edit `run_star_extras_evol_Mors0.f` with the contents
 
 The code expects to find the `MESA` output in folder named `data`, in the same directory as the repository, like so:
 
---- project_directory
- | --- repository
- | --- data
+```
+.
+├── src # contents of the repo
+├── data 
+```
